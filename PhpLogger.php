@@ -48,7 +48,7 @@ class PhpLogger
         'lightCyan' => 106
     );
 
-    public function __construct($syslog = false, $file = array())
+    public function __construct($syslog = false, $file = false)
     {
 
         $this->_syslogTag = $syslog;
@@ -56,7 +56,7 @@ class PhpLogger
         $default = array(
             'logDir' => sys_get_temp_dir(),
             'name' => 'easy-log',
-            'ext' => '.log',
+            'ext' => 'log',
             'dateFormat' => 'd-m-Y H:i:s P',
             'maxLogs' => 1,
             'maxSize' => 123123154
@@ -78,7 +78,7 @@ class PhpLogger
         }
 
         if ($this->_file) {
-            $this->_customFile($log, $priority);
+            $this->_customFile($log, '[debug]', $priority);
         }
 
         return "\033[39m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -93,7 +93,7 @@ class PhpLogger
         }
 
         if ($this->_file) {
-            $this->_customFile($log, $priority);
+            $this->_customFile($log, '[info]', $priority);
         }
 
         return "\033[96m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -108,7 +108,7 @@ class PhpLogger
         }
 
         if ($this->_file) {
-            $this->_customFile($log, $priority);
+            $this->_customFile($log, '[warning]', $priority);
         }
 
         return "\033[93m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -123,7 +123,7 @@ class PhpLogger
         }
 
         if ($this->_file) {
-            $this->_customFile($log, $priority);
+            $this->_customFile($log, '[success]', $priority);
         }
 
         return "\033[92m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -138,7 +138,7 @@ class PhpLogger
         }
 
         if ($this->_file) {
-            $this->_customFile($log, $priority);
+            $this->_customFile($log, '[error]', $priority);
         }
 
         return "\033[91m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -153,7 +153,7 @@ class PhpLogger
         }
 
         if ($this->_file) {
-            $this->_customFile($log, $priority);
+            $this->_customFile($log, '[fatal]', $priority);
         }
 
         return "\033[91m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -232,7 +232,7 @@ class PhpLogger
      *
      * @param String $message
      */
-    protected function _customFile($message, $priority = LOG_DEBUG)
+    protected function _customFile($message, $status = '', $priority = LOG_DEBUG)
     {
 
         $logOpts = $this->_file;
@@ -267,7 +267,11 @@ class PhpLogger
 
         $date = date($logOpts['dateFormat']);
 
-        file_put_contents($logFile, $date . ': ' . print_r($message, true) . PHP_EOL, FILE_APPEND | LOCK_EX);
+        file_put_contents(
+            $logFile, 
+            $date . ': ' . $status . ' ' . print_r($message, true) . PHP_EOL,
+            FILE_APPEND | LOCK_EX
+        );
 
     }
 
