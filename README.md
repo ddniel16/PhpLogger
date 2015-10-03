@@ -4,11 +4,6 @@ System logs in php, with options to register in syslog or in a custom file, with
 INSTALL
 -------
 
-install using composer
-````
-composer require ddniel16/php-logger
-````
-
 
 #Method's
 available methods:
