@@ -1,0 +1,17 @@
+{
+    "name": "ddniel16/php-logger",
+    "type": "library",
+    "description": "System logs in php, with options to register in syslog or in a custom file. No dependency. No framework required.",
+    "keywords": ["php","loggger","syslog","custom file", "colors"],
+    "homepage": "https://github.com/ddniel16/php-logger",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniel Rendon",
+            "email": "ddniel16@gmail.com",
+            "homepage": "https://github.com/ddniel16"
+        }
+    ],
+    "autoload": {},
+    "target-dir": "ddniel16/php-logger"
+}
