@@ -1,5 +1,7 @@
 <?php
 
+namespace ddniel16;
+
 /**
  * @link    https://github.com/ddniel16/php-logger
  * @author  ddniel16 <ddniel16@gmail.com>

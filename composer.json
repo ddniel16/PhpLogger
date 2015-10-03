@@ -1,5 +1,5 @@
 {
-    "name": "ddniel16/php-logger",
+    "name": "ddniel16/PhpLogger",
     "type": "library",
     "description": "System logs in php, with options to register in syslog or in a custom file. No dependency. No framework required.",
     "keywords": ["php","loggger","syslog","custom file", "colors"],
@@ -14,7 +14,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Php\\Logger\\": "src/"
+            "PhpLogger\\": "src/"
         }
     }
 }
