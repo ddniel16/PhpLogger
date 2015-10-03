@@ -12,6 +12,9 @@
             "homepage": "https://github.com/ddniel16"
         }
     ],
-    "autoload": {},
-    "target-dir": "ddniel16/php-logger"
+    "autoload": {
+        "psr-4": {
+            "Php\\Logger\\": "src/"
+        }
+    }
 }
