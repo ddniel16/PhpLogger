@@ -2,7 +2,7 @@
     "name": "ddniel16/php-logger",
     "type": "library",
     "description": "System logs in php, with options to register in syslog or in a custom file. No dependency. No framework required.",
-    "keywords": ["php","loggger","syslog","custom file", "colors"],
+    "keywords": ["php","logger","syslog","custom file", "colors", "terminal colors"],
     "homepage": "https://github.com/ddniel16/php-logger",
     "license": "MIT",
     "authors": [

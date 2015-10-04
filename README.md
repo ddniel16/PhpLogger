@@ -4,6 +4,10 @@ System logs in php, with options to register in syslog or in a custom file, with
 INSTALL
 -------
 
+Using composer:
+````
+composer require ddniel16/php-logger:dev-master
+````
 
 #Method's
 available methods:
