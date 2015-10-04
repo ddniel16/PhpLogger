@@ -238,11 +238,23 @@ class Logger
     protected function _customFile($message, $status = '', $priority = LOG_DEBUG)
     {
 
+        $files = array();
         $logOpts = $this->_file;
 
         $logMaxSize = $logOpts['maxSize'];
         if (!is_numeric($logMaxSize)) {
             $logMaxSize = 104857600;
+        }
+
+        $listFiles = scandir($logOpts['logDir']);
+        if (!empty($listFiles)) {
+            foreach ($listFiles as $file) {
+                $info = pathinfo($file);
+                if (isset($info['extension']) && $info['extension'] === $logOpts['ext']) {
+                    $files[] = $file;
+                }
+                
+            }
         }
 
         $logName = $logOpts['name']  . '.' . $logOpts['ext'];
@@ -257,15 +269,18 @@ class Logger
 
         if ($fileSize > $logMaxSize) {
 
-            $pathInfo = pathinfo($logFile);
-            $path = realpath($pathInfo['dirname']);
-            $newName = $pathInfo['filename'] . '2.' . $pathInfo['extension'];
+            $numFile = sizeof($files) + 1;
+            if ($numFile <= $logOpts['maxLogs']) {
 
-            rename($logFile, $path . '/' . $newName);
+                $pathInfo = pathinfo($logFile);
+                $path = realpath($pathInfo['dirname']);
+                $newName = $pathInfo['filename'] . '.' . ($numFile) . '.' . $pathInfo['extension'];
 
-            $log = fopen($logFile, 'w');
-            fclose($log);
+                rename($logFile, $path . '/' . $newName);
 
+                $log = fopen($logFile, 'w');
+                fclose($log);
+            }
         }
 
         $date = date($logOpts['dateFormat']);
