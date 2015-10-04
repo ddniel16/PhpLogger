@@ -1,11 +1,14 @@
 <?php
 
+namespace PhpLogger;
+
 /**
  * @link    https://github.com/ddniel16/php-logger
  * @author  ddniel16 <ddniel16@gmail.com>
  * @license MIT
  */
-class PhpLogger
+
+class Logger
 {
 
     protected $_default = "\033[0m";
