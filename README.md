@@ -25,8 +25,10 @@ Examples
 Write to syslog with the severity of the method or be instructed.
 
 ````php
+use PhpLogger\Logger;
+
 $syslogTag = 'test-log';
-$log = new PhpLogger($syslogTag, false);
+$log = new Logger($syslogTag, false);
 
 $log->debug('debug message');
 ````
@@ -35,6 +37,8 @@ $log->debug('debug message');
 
 Written to the file with a message depending on the severity
 ````php
+use PhpLogger\Logger;
+
 $logFile = array(
     'logDir' => '/tmp',
     'name' => 'test',
@@ -44,7 +48,7 @@ $logFile = array(
     'maxSize' => 123123154
 );
 
-$log = new PhpLogger(false, $logFile);
+$log = new Logger(false, $logFile);
 
 $log->debug('debug message');
 ````
