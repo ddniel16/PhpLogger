@@ -58,6 +58,7 @@ class File
             fclose($log);
         }
 
+        $this->_realSize($logFile);
         $fileSize = filesize($logFile);
 
         if ($fileSize > $logMaxSize) {
@@ -77,13 +78,26 @@ class File
         }
 
         $date = date($logOpts['dateFormat']);
-
+        
         file_put_contents(
             $logFile, 
             $date . ': ' . $status . ' ' . print_r($message, true) . PHP_EOL,
             FILE_APPEND | LOCK_EX
         );
 
+    }
+
+    protected function _realSize($logFile)
+    {
+
+        $tmp = tempnam(sys_get_temp_dir(), 'tmp');
+        copy($logFile, $tmp);
+
+        $size = filesize($tmp);
+
+        unlink($tmp);
+
+        return $size;
     }
 
 }
