@@ -2,18 +2,19 @@
 
 namespace PhpLogger;
 
+use PhpLogger\File;
+use PhpLogger\Syslog;
 /**
  * @link    https://github.com/ddniel16/php-logger
  * @author  ddniel16 <ddniel16@gmail.com>
  * @license MIT
  */
-
 class Logger
 {
 
     protected $_default = "\033[0m";
-    protected $_syslogTag;
-    protected $_file;
+    protected $_syslogTag = false;
+    protected $_logFile = false;
 
     private $_fontColors = array(
         'default' => 39,
@@ -56,19 +57,8 @@ class Logger
 
         $this->_syslogTag = $syslog;
 
-        $default = array(
-            'logDir' => sys_get_temp_dir(),
-            'name' => 'easy-log',
-            'ext' => 'log',
-            'dateFormat' => 'd-m-Y H:i:s P',
-            'maxLogs' => 1,
-            'maxSize' => 123123154
-        );
-
-        if ($file === false) {
-            $this->_file = $file;
-        } else {
-            $this->_file = array_merge($default, $file);
+        if ($file !== false) {
+            $this->_logFile = new File($file);
         }
 
     }
@@ -80,8 +70,8 @@ class Logger
             $this->_syslog($log, $priority);
         }
 
-        if ($this->_file) {
-            $this->_customFile($log, '[debug]', $priority);
+        if ($this->_logFile) {
+            $this->_logFile->writeLog($log, '[debug]', $priority);
         }
 
         return "\033[39m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -95,8 +85,8 @@ class Logger
             $this->_syslog($log, $priority);
         }
 
-        if ($this->_file) {
-            $this->_customFile($log, '[info]', $priority);
+        if ($this->_logFile) {
+            $this->_logFile->writeLog($log, '[info]', $priority);
         }
 
         return "\033[96m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -110,8 +100,8 @@ class Logger
             $this->_syslog($log, $priority);
         }
 
-        if ($this->_file) {
-            $this->_customFile($log, '[warning]', $priority);
+        if ($this->_logFile) {
+            $this->_logFile->writeLog($log, '[warning]', $priority);
         }
 
         return "\033[93m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -125,8 +115,8 @@ class Logger
             $this->_syslog($log, $priority);
         }
 
-        if ($this->_file) {
-            $this->_customFile($log, '[success]', $priority);
+        if ($this->_logFile) {
+            $this->_logFile->writeLog($log, '[success]', $priority);
         }
 
         return "\033[92m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -140,8 +130,8 @@ class Logger
             $this->_syslog($log, $priority);
         }
 
-        if ($this->_file) {
-            $this->_customFile($log, '[error]', $priority);
+        if ($this->_logFile) {
+            $this->_logFile->writeLog($log, '[error]', $priority);
         }
 
         return "\033[91m" . print_r($log, true) . $this->_default . PHP_EOL;
@@ -155,15 +145,15 @@ class Logger
             $this->_syslog($log, $priority);
         }
 
-        if ($this->_file) {
-            $this->_customFile($log, '[fatal]', $priority);
+        if ($this->_logFile) {
+            $this->_logFile->writeLog($log, '[fatal]', $priority);
         }
 
         return "\033[91m" . print_r($log, true) . $this->_default . PHP_EOL;
 
     }
 
-    public function custom($log, $fontColor = 39, $backgroundColor = 49)
+    public function custom($log, $priority = LOG_DEBUG, $tag = '[custom]', $fontColor = 39, $backgroundColor = 49)
     {
 
         $color = $this->_checkFontColor($fontColor);
@@ -173,8 +163,8 @@ class Logger
             $this->_syslog($log, LOG_ERR);
         }
 
-        if ($this->_file) {
-            $this->_customFile($log);
+        if ($this->_logFile) {
+            $this->_logFile->writeLog($log, $tag, $priority);
         }
 
         $back = "\033[" . $background . "m";
@@ -234,117 +224,13 @@ class Logger
     /**
      *
      * @param String $message
-     */
-    protected function _customFile($message, $status = '', $priority = LOG_DEBUG)
-    {
-
-        $files = array();
-        $logOpts = $this->_file;
-
-        $logMaxSize = $logOpts['maxSize'];
-        if (!is_numeric($logMaxSize)) {
-            $logMaxSize = 104857600;
-        }
-
-        $listFiles = scandir($logOpts['logDir']);
-        if (!empty($listFiles)) {
-            foreach ($listFiles as $file) {
-                $info = pathinfo($file);
-                if (isset($info['extension']) && $info['extension'] === $logOpts['ext']) {
-                    $files[] = $file;
-                }
-                
-            }
-        }
-
-        $logName = $logOpts['name']  . '.' . $logOpts['ext'];
-        $logFile = $logOpts['logDir'] . '/' . $logName;
-
-        if (!file_exists($logFile)) {
-            $log = fopen($logFile, 'w');
-            fclose($log);
-        }
-
-        $fileSize = filesize($logFile);
-
-        if ($fileSize > $logMaxSize) {
-
-            $numFile = sizeof($files) + 1;
-            if ($numFile <= $logOpts['maxLogs']) {
-
-                $pathInfo = pathinfo($logFile);
-                $path = realpath($pathInfo['dirname']);
-                $newName = $pathInfo['filename'] . '.' . ($numFile) . '.' . $pathInfo['extension'];
-
-                rename($logFile, $path . '/' . $newName);
-
-                $log = fopen($logFile, 'w');
-                fclose($log);
-            }
-        }
-
-        $date = date($logOpts['dateFormat']);
-
-        file_put_contents(
-            $logFile, 
-            $date . ': ' . $status . ' ' . print_r($message, true) . PHP_EOL,
-            FILE_APPEND | LOCK_EX
-        );
-
-    }
-
-    /**
-     *
-     * @param String $message
      * @param Constante $priority
      */
     protected function _syslog($message, $priority = LOG_DEBUG)
     {
 
-        if ($this->_syslogTag) {
-            openlog($this->_syslogTag, LOG_NDELAY | LOG_PID, LOG_LOCAL0);
-        }
-
+        openlog($this->_syslogTag, LOG_NDELAY | LOG_PID, LOG_LOCAL0);
         syslog($priority, print_r($message, true));
-
-    }
-
-    protected function _fileSizeConvert ($bytes)
-    {
-
-        $bytes = floatval($bytes);
-        $arBytes = array(
-            0 => array(
-                'unit' => 'TB',
-                'value' => pow(1024, 4)
-            ),
-            1 => array(
-                'unit' => 'GB',
-                'value' => pow(1024, 3)
-            ),
-            2 => array(
-                'unit' => 'MB',
-                'value' => pow(1024, 2)
-            ),
-            3 => array(
-                'unit' => 'KB',
-                'value' => 1024
-            ),
-            4 => array(
-                'unit' => 'B',
-                'value' => 1
-            )
-        );
-
-        foreach ($arBytes as $arItem) {
-            if ($bytes >= $arItem['value']) {
-                $result = $bytes / $arItem['value'];
-                $result = str_replace('.', ',', strval(round($result, 2))) . ' ' . $arItem['unit'];
-                break;
-            }
-        }
-
-        return $result;
 
     }
 
