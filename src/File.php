@@ -91,13 +91,14 @@ class File
     {
 
         $tmp = tempnam(sys_get_temp_dir(), 'tmp');
-        copy($logFile, $tmp);
+        rename($logFile, $tmp);
 
         $size = filesize($tmp);
 
-        unlink($tmp);
+        rename($tmp, $logFile);
 
         return $size;
+
     }
 
 }
