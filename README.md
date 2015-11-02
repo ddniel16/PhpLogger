@@ -9,6 +9,16 @@ Using composer:
 composer require ddniel16/php-logger:dev-master
 ````
 
+or: 
+````
+composer.json
+
+    "require": {
+        "ddniel16/php-logger": "v2.0.0"
+    }
+````
+
+
 #Method's
 available methods:
 
@@ -30,11 +40,14 @@ Write to syslog with the severity of the method or be instructed.
 
 ````php
 use PhpLogger\Logger;
+use PhpLogger\Syslog;
 
-$syslogTag = 'test-log';
-$log = new Logger($syslogTag, false);
+$syslog = new Syslog('Php-Logger');
 
-$log->debug('debug message');
+$log = new Logger();
+$log->setSyslog($syslog);
+
+$log->error('error message');
 ````
 
 #File
@@ -42,6 +55,7 @@ $log->debug('debug message');
 Written to the file with a message depending on the severity
 ````php
 use PhpLogger\Logger;
+use PhpLogger\File;
 
 $logFile = array(
     'logDir' => '/tmp',
@@ -52,8 +66,41 @@ $logFile = array(
     'maxSize' => 123123154
 );
 
-$log = new Logger(false, $logFile);
+$file = new File($logFile);
+
+$log = new Logger();
+$log->setFile($file);
 
 $log->debug('debug message');
 ````
 
+#Sql
+
+
+````sql
+CREATE TABLE `PhpLogger` (
+    `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+    `priority` varchar(55) DEFAULT NULL,
+    `log` text,
+    `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+````
+
+
+````php
+use PhpLogger\Sql;
+use PhpLogger\Logger;
+
+$sql = new Sql();
+$sql->setUser('user')
+    ->setPassword('pass')
+    ->setHost('localhost')
+    ->setDbName('testing');
+
+$log = new Logger();
+$log->setSql($sql);
+
+$log->debug('debug message');
+
+````

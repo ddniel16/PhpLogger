@@ -2,8 +2,6 @@
 
 namespace PhpLogger;
 
-use PhpLogger\File;
-use PhpLogger\Syslog;
 /**
  * @link    https://github.com/ddniel16/php-logger
  * @author  ddniel16 <ddniel16@gmail.com>
@@ -13,8 +11,6 @@ class Logger
 {
 
     protected $_default = "\033[0m";
-    protected $_syslogTag = false;
-    protected $_logFile = false;
 
     private $_fontColors = array(
         'default' => 39,
@@ -52,104 +48,77 @@ class Logger
         'lightCyan' => 106
     );
 
-    public function __construct($syslog = false, $file = false)
+    protected $_debugColor   = 39;
+    protected $_infoColor    = 96;
+    protected $_warningColor = 93;
+    protected $_successColor = 92;
+    protected $_errorColor   = 91;
+    protected $_fatalColor   = 91;
+
+    protected $_file   = false;
+    protected $_syslog = false;
+    protected $_sql    = false;
+
+    public function setFile(File $file)
     {
-
-        $this->_syslogTag = $syslog;
-
-        if ($file !== false) {
-            $this->_logFile = new File($file);
-        }
-
+        $this->_file = $file;
+    }
+    
+    public function setSyslog(Syslog $syslog)
+    {
+        $this->_syslog = $syslog;
+    }
+    
+    public function setSql(Sql $sql)
+    {
+        $this->_sql = $sql;
     }
 
     public function debug($log, $priority = LOG_DEBUG)
     {
 
-        if ($this->_syslogTag !== false) {
-            $this->_syslog($log, $priority);
-        }
-
-        if ($this->_logFile) {
-            $this->_logFile->writeLog($log, '[debug]', $priority);
-        }
-
-        return "\033[39m" . print_r($log, true) . $this->_default . PHP_EOL;
+        $result = $this->_processLog($log, '[debug]', $priority, $this->_debugColor);
+        return $result;
 
     }
 
     public function info($log, $priority = LOG_INFO)
     {
 
-        if ($this->_syslogTag !== false) {
-            $this->_syslog($log, $priority);
-        }
-
-        if ($this->_logFile) {
-            $this->_logFile->writeLog($log, '[info]', $priority);
-        }
-
-        return "\033[96m" . print_r($log, true) . $this->_default . PHP_EOL;
+        $result = $this->_processLog($log, '[info]', $priority, $this->_infoColor);
+        return $result;
 
     }
 
     public function warning($log, $priority = LOG_WARNING)
     {
 
-        if ($this->_syslogTag !== false) {
-            $this->_syslog($log, $priority);
-        }
-
-        if ($this->_logFile) {
-            $this->_logFile->writeLog($log, '[warning]', $priority);
-        }
-
-        return "\033[93m" . print_r($log, true) . $this->_default . PHP_EOL;
+        $result = $this->_processLog($log, '[warning]', $priority, $this->_warningColor);
+        return $result;
 
     }
 
     public function success($log, $priority = LOG_DEBUG)
     {
 
-        if ($this->_syslogTag !== false) {
-            $this->_syslog($log, $priority);
-        }
-
-        if ($this->_logFile) {
-            $this->_logFile->writeLog($log, '[success]', $priority);
-        }
-
-        return "\033[92m" . print_r($log, true) . $this->_default . PHP_EOL;
+        $result = $this->_processLog($log, '[success]', $priority, $this->_successColor);
+        return $result;
 
     }
 
     public function error($log, $priority = LOG_ERR)
     {
 
-        if ($this->_syslogTag !== false) {
-            $this->_syslog($log, $priority);
-        }
-
-        if ($this->_logFile) {
-            $this->_logFile->writeLog($log, '[error]', $priority);
-        }
-
-        return "\033[91m" . print_r($log, true) . $this->_default . PHP_EOL;
+        $result = $this->_processLog($log, '[error]', $priority, $this->_errorColor);
+        return $result;
 
     }
 
     public function fatal($log, $priority = LOG_ALERT)
     {
 
-        if ($this->_syslogTag !== false) {
-            $this->_syslog($log, $priority);
-        }
-
-        if ($this->_logFile) {
-            $this->_logFile->writeLog($log, '[fatal]', $priority);
-        }
-
-        return "\033[91m" . print_r($log, true) . $this->_default . PHP_EOL;
+        $result = $this->_processLog($log, '[fatal]', $priority, $this->_fatalColor);
+        return $result;
 
     }
 
@@ -159,19 +128,32 @@ class Logger
         $color = $this->_checkFontColor($fontColor);
         $background = $this->_checkBackgroundColor($backgroundColor);
 
-        if ($this->_syslogTag !== false) {
-            $this->_syslog($log, LOG_ERR);
-        }
-
-        if ($this->_logFile) {
-            $this->_logFile->writeLog($log, $tag, $priority);
-        }
+        $this->_processLog($log, $tag, $priority, $fontColor);
 
         $back = "\033[" . $background . "m";
         $font = "\033[" . $color . "m";
         $content = print_r($log, true);
 
         return $back . $font . $content . $this->_default . PHP_EOL;
+
+    }
+
+    protected function _processLog($log, $priorityMsg, $priority, $color)
+    {
+
+        if ($this->_syslog !== false) {
+            $this->_syslog->writeLog($log, $priority);
+        }
+
+        if ($this->_file) {
+            $this->_file->writeLog($log, $priorityMsg, $priority);
+        }
+
+        if ($this->_sql) {
+            $this->_sql->save($log, $priorityMsg);
+        }
+
+        return "\033[" . $color . "m" . print_r($log, true) . $this->_default . PHP_EOL;
 
     }
 
@@ -218,19 +200,6 @@ class Logger
         }
 
         return 49;
-
-    }
-
-    /**
-     *
-     * @param String $message
-     * @param Constante $priority
-     */
-    protected function _syslog($message, $priority = LOG_DEBUG)
-    {
-
-        openlog($this->_syslogTag, LOG_NDELAY | LOG_PID, LOG_LOCAL0);
-        syslog($priority, print_r($message, true));
 
     }
 
