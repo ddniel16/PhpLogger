@@ -12,7 +12,7 @@ class Syslog
 
     protected $_syslogTag;
 
-    public function __constructor($syslogTag = 'PhpLogger')
+    public function __construct($syslogTag = 'PhpLogger')
     {
         $this->_syslogTag = $syslogTag;
     }
