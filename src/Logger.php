@@ -1,52 +1,30 @@
 <?php
 
+/**
+ * Class "Logger"
+ *
+ * PHP version 5.6/7
+ *
+ * @package PhpLogger
+ * @author  "Daniel Rendon Arias (ddniel16)" <ddniel16@gmail.com>
+ * @license https://opensource.org/licenses/EUPL-1.1 European Union Public Licence (V. 1.1)
+ * @version Release: @package_version@
+ * @link    https://github.com/ddniel16/php-logger
+ */
+
 namespace PhpLogger;
 
 /**
+ * Class "Logger"
+ *
+ * @package PhpLogger
+ * @author  "Daniel Rendon Arias (ddniel16)" <ddniel16@gmail.com>
+ * @license https://opensource.org/licenses/EUPL-1.1 European Union Public Licence (V. 1.1)
+ * @version Release: @package_version@
  * @link    https://github.com/ddniel16/php-logger
- * @author  ddniel16 <ddniel16@gmail.com>
- * @license MIT
  */
-class Logger
+class Logger implements \Psr\Log\LoggerInterface
 {
-
-    protected $_default = "\033[0m";
-
-    private $_fontColors = array(
-        'default' => 39,
-        'white' => 97,
-        'black' => 30,
-        'red' => 31,
-        'green' => 32,
-        'yellow' => 33,
-        'blue' => 34,
-        'purple' => 35,
-        'cyan' => 36,
-        'lightRed' => 91,
-        'lightGreen' => 92,
-        'lightYellow' => 93,
-        'lightBlue' => 94,
-        'lightPurple' => 95,
-        'lightCyan' => 96
-    );
-
-    private $_backgroundColors = array(
-        'default' => 49,
-        'white' => 107,
-        'black' => 40,
-        'red' => 41,
-        'green' => 42,
-        'yellow' => 43,
-        'blue' => 44,
-        'purple' => 45,
-        'cyan' => 46,
-        'lightRed' => 101,
-        'lightGreen' => 102,
-        'lightYellow' => 103,
-        'lightBlue' => 104,
-        'lightPurple' => 105,
-        'lightCyan' => 106
-    );
 
     protected $_debugColor   = 39;
     protected $_infoColor    = 96;
@@ -55,151 +33,238 @@ class Logger
     protected $_errorColor   = 91;
     protected $_fatalColor   = 91;
 
-    protected $_file   = false;
-    protected $_syslog = false;
-    protected $_sql    = false;
-
-    public function setFile(File $file)
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::emergency()
+     */
+    public function emergency(
+        $message,
+        array $context = array(),
+        $priority = LOG_EMERG
+    )
     {
-        $this->_file = $file;
-    }
-    
-    public function setSyslog(Syslog $syslog)
-    {
-        $this->_syslog = $syslog;
-    }
-    
-    public function setSql(Sql $sql)
-    {
-        $this->_sql = $sql;
-    }
-
-    public function debug($log, $priority = LOG_DEBUG)
-    {
-
-        $result = $this->_processLog($log, '[debug]', $priority, $this->_debugColor);
-        return $result;
-
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[emergency]',
+            $this->_fatalColor
+        );
     }
 
-    public function info($log, $priority = LOG_INFO)
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::alert()
+     */
+    public function alert(
+        $message,
+        array $context = array(),
+        $priority = LOG_ALERT
+    )
     {
-
-        $result = $this->_processLog($log, '[info]', $priority, $this->_infoColor);
-        return $result;
-
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[fatal]',
+            $this->_fatalColor
+        );
     }
 
-    public function warning($log, $priority = LOG_WARNING)
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::critical()
+     */
+    public function critical(
+        $message,
+        array $context = array(),
+        $priority = LOG_CRIT
+    )
     {
-
-        $result = $this->_processLog($log, '[warning]', $priority, $this->_warningColor);
-        return $result;
-
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[critical]',
+            $this->_fatalColor
+        );
     }
 
-    public function success($log, $priority = LOG_DEBUG)
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::error()
+     */
+    public function error(
+        $message,
+        array $context = array(),
+        $priority = LOG_ERR
+    )
     {
-
-        $result = $this->_processLog($log, '[success]', $priority, $this->_successColor);
-        return $result;
-
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[error]',
+            $this->_errorColor
+        );
     }
 
-    public function error($log, $priority = LOG_ERR)
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::warning()
+     */
+    public function warning(
+        $message,
+        array $context = array(),
+        $priority = LOG_WARNING
+    )
     {
-
-        $result = $this->_processLog($log, '[error]', $priority, $this->_errorColor);
-        return $result;
-
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[warning]',
+            $this->_warningColor
+        );
     }
 
-    public function fatal($log, $priority = LOG_ALERT)
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::notice()
+     */
+    public function notice(
+        $message,
+        array $context = array(),
+        $priority = LOG_NOTICE
+    )
     {
-
-        $result = $this->_processLog($log, '[fatal]', $priority, $this->_fatalColor);
-        return $result;
-
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[notice]',
+            $this->_infoColor
+        );
     }
 
-    public function custom($log, $priority = LOG_DEBUG, $tag = '[custom]', $fontColor = 39, $backgroundColor = 49)
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::info()
+     */
+    public function info(
+        $message,
+        array $context = array(),
+        $priority = LOG_INFO
+    )
+    {
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[info]',
+            $this->_infoColor
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::debug()
+     */
+    public function debug(
+        $message,
+        array $context = array(),
+        $priority = LOG_DEBUG
+    )
+    {
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[debug]',
+            $this->_debugColor
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @see \Psr\Log\LoggerInterface::log()
+     */
+    public function log(
+        $level,
+        $message,
+        array $context = array(),
+        $priority = LOG_DEBUG
+    )
+    {
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[log]',
+            $this->_successColor
+        );
+    }
+
+    /**
+     * End from event.
+     *
+     * Example: Email sent!
+     *
+     * @param unknown $message
+     * @param array $context
+     * @param string $priority
+     */
+    public function success(
+        $message,
+        array $context = array(),
+        $priority = LOG_INFO
+    )
+    {
+        return $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            '[success]',
+            $this->_successColor
+        );
+    }
+
+    /**
+     *
+     * @param unknown $message
+     * @param array $context
+     * @param string $priority
+     * @param string $tag
+     * @param number $fontColor
+     * @param number $backgroundColor
+     * @return string
+     */
+    public function custom(
+        $message,
+        array $context = array(),
+        $priority = LOG_DEBUG,
+        $tag = '[custom]',
+        $fontColor = 39,
+        $backgroundColor = 49
+    )
     {
 
-        $color = $this->_checkFontColor($fontColor);
-        $background = $this->_checkBackgroundColor($backgroundColor);
+        $color = \PhpLogger\Tools::checkFontColor($fontColor);
+        $background = \PhpLogger\Tools::checkBackgroundColor($backgroundColor);
 
-        $this->_processLog($log, $tag, $priority, $fontColor);
+        $log = $this->_processLog(
+            $message,
+            $context,
+            $priority,
+            $tag,
+            $fontColor
+        );
 
         $back = "\033[" . $background . "m";
         $font = "\033[" . $color . "m";
         $content = print_r($log, true);
 
-        return $back . $font . $content . $this->_default . PHP_EOL;
-
-    }
-
-    protected function _processLog($log, $priorityMsg, $priority, $color)
-    {
-
-        if ($this->_syslog !== false) {
-            $this->_syslog->writeLog($log, $priority);
-        }
-
-        if ($this->_file) {
-            $this->_file->writeLog($log, $priorityMsg, $priority);
-        }
-
-        if ($this->_sql) {
-            $this->_sql->save($log, $priorityMsg);
-        }
-
-        return "\033[" . $color . "m" . print_r($log, true) . $this->_default . PHP_EOL;
-
-    }
-
-    protected function _checkFontColor($fontColor)
-    {
-
-        if (gettype($fontColor) === 'integer') {
-
-            $values = array_values($this->_fontColors);
-
-            if (array_search($fontColor, $values) !== false) {
-                return $fontColor;
-            }
-
-        } elseif (gettype($fontColor) === 'string') {
-
-            if (array_key_exists($fontColor, $this->_fontColors)) {
-                return $this->_fontColors[$fontColor];
-            }
-
-        }
-
-        return 39;
-
-    }
-
-    protected function _checkBackgroundColor($backgroundColor)
-    {
-
-        if (gettype($backgroundColor) === 'integer') {
-
-            $values = array_values($this->_backgroundColors);
-
-            if (array_search($backgroundColor, $values) !== false) {
-                return $backgroundColor;
-            }
-
-        } elseif (gettype($backgroundColor) === 'string') {
-
-            if (array_key_exists($backgroundColor, $this->_backgroundColors)) {
-                return $this->_backgroundColors[$backgroundColor];
-            }
-
-        }
-
-        return 49;
+        return $back . $font . $content . "\033[0m" . PHP_EOL;
 
     }
 

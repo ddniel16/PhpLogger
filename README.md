@@ -1,106 +1,126 @@
 # Php-Logger
+
 System logs in php, with options to register in syslog or in a custom file, with different priorities and in the case of logs to the console, with distinctive colors for each type.
 
-INSTALL
--------
+* [Install](#install)
+* [Methods](#methods)
+* [Examples](#examples)
+  * [Syslog](#syslog)
+  * [File](#file)
+  * [Custom](#custom)
+
+## Install
 
 Using composer:
-````
-composer require ddniel16/php-logger:dev-master
-````
 
-or: 
 ````
-composer.json
-
-    "require": {
-        "ddniel16/php-logger": "v2.0.0"
-    }
+composer require ddniel16/php-logger
 ````
 
+## Methods
 
-#Method's
 available methods:
 
 ````php
-echo $log->debug($message);
-echo $log->info($message);
-echo $log->warning($message);
-echo $log->success($message);
-echo $log->error($message);
-echo $log->fatal($message);
-echo $log->custom($message);
+$logs->alert($message, $context);
+$logs->critical($message, $context);
+$logs->custom($message, $context);
+$logs->debug($message, $context);
+$logs->emergency($message, $context);
+$logs->error($message, $context);
+$logs->info($message, $context);
+$logs->log(0, $message, $context);
+$logs->notice($message, $context);
+$logs->success($message, $context);
+$logs->warning($message, $context);
 ````
 
-Examples
---------
+## Examples
 
-#Syslog
+````php
+<?php
+
+$logs = new \PhpLogger\PhpLogger();
+$logs->setOutput(true);
+
+$message = 'Hello Mr. {name} {lastname} Matrix awaits you!';
+$context = array('name' => 'Jack', 'lastname' => 'Sparrow');
+
+$logs->debug($message, $context);
+
+````
+
+### Syslog
+
 Write to syslog with the severity of the method or be instructed.
 
 ````php
-use PhpLogger\Logger;
-use PhpLogger\Syslog;
+<?php
 
-$syslog = new Syslog('Php-Logger');
+$syslog = new \PhpLogger\Syslog('testting');
 
-$log = new Logger();
-$log->setSyslog($syslog);
+$logger = new \PhpLogger\PhpLogger();
+$logger->setSyslog($syslog);
 
-$log->error('error message');
+$logger->debug('--> syslog <--');
+
 ````
 
-#File
+### File
 
 Written to the file with a message depending on the severity
-````php
-use PhpLogger\Logger;
-use PhpLogger\File;
 
-$logFile = array(
-    'logDir' => '/tmp',
-    'name' => 'test',
+````php
+<?php
+
+$optionsFile = array(
+    'logDir' => __DIR__ . '/logs',
+    'name' => 'php-logger',
     'ext' => 'log',
     'dateFormat' => 'd-m-Y H:i:s P',
-    'maxLogs' => 1,
-    'maxSize' => 123123154
+    'maxLogs' => 3,
+    'maxSize' => 700
 );
 
-$file = new File($logFile);
+$file = new \PhpLogger\File($logFile);
 
-$log = new Logger();
-$log->setFile($file);
+$logger = new \PhpLogger\PhpLogger();
+$logger->setFile($file);
 
-$log->debug('debug message');
+$logger->debug('debug message');
+
 ````
 
-#Sql
-
-
-````sql
-CREATE TABLE `PhpLogger` (
-    `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
-    `priority` varchar(55) DEFAULT NULL,
-    `log` text,
-    `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-````
+### Custom
 
 
 ````php
-use PhpLogger\Sql;
-use PhpLogger\Logger;
+class CustomLogger implements PhpLogger\CustomInterface
+{
 
-$sql = new Sql();
-$sql->setUser('user')
-    ->setPassword('pass')
-    ->setHost('localhost')
-    ->setDbName('testing');
+    public function writeLog(
+        $message,
+        $priority = LOG_DEBUG,
+        $priorityMsg = '[debug]'
+    )
+    {
 
-$log = new Logger();
-$log->setSql($sql);
+        if ($priority === LOG_CRIT) {
+            mail('user@example.com', $priorityMsg, $message);
+        }
 
-$log->debug('debug message');
+    }
+
+}
+
+$logs = new \PhpLogger\PhpLogger();
+$logs->setCustom(new CustomLogger());
+$logs->setOutput(false);
+
+$message = 'Hola Sr. {name} {lastname}';
+$context = array('name' => 'Jack', 'lastname' => 'Sparrow');
+
+$logs->critical($message, $context);
 
 ````
+

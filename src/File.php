@@ -1,57 +1,83 @@
 <?php
 
+/**
+ * Class "File"
+ *
+ * PHP version 5.6/7
+ *
+ * @package PhpLogger
+ * @author  "Daniel Rendon Arias (ddniel16)" <ddniel16@gmail.com>
+ * @license https://opensource.org/licenses/EUPL-1.1 European Union Public Licence (V. 1.1)
+ * @version Release: @package_version@
+ * @link    https://github.com/ddniel16/php-logger
+ */
+
 namespace PhpLogger;
 
 /**
+ * This class send messages to files
+ *
+ * @package PhpLogger
+ * @author  "Daniel Rendon Arias (ddniel16)" <ddniel16@gmail.com>
+ * @license https://opensource.org/licenses/EUPL-1.1 European Union Public Licence (V. 1.1)
+ * @version Release: @package_version@
  * @link    https://github.com/ddniel16/php-logger
- * @author  ddniel16 <ddniel16@gmail.com>
- * @license MIT
  */
-class File
+class File implements FileInterface
 {
 
-    protected $_file;
+    /**
+     * Options
+     *
+     * @var array
+     */
+    protected $_options;
 
-    public function __construct($file)
+    /**
+     * Merge options with default options
+     *
+     * @param array $options
+     */
+    public function __construct(array $options = array())
     {
 
-           $default = array(
+       $default = array(
             'logDir' => sys_get_temp_dir(),
-            'name' => 'easy-log',
+            'name' => 'php-logger',
             'ext' => 'log',
             'dateFormat' => 'd-m-Y H:i:s P',
             'maxLogs' => 1,
             'maxSize' => 123123154
         );
 
-       $this->_file = array_merge($default, $file);
+       $this->_options = array_merge($default, $options);
 
     }
 
-    public function writeLog($message, $status = '[debug]', $priority = LOG_DEBUG)
+    /**
+     * Saves the log message
+     *
+     * {@inheritDoc}
+     * @see \PhpLogger\FileInterface::writeLog()
+     */
+    public function writeLog(
+        string $message,
+        string $status = '[debug]',
+        $priority = LOG_DEBUG
+    )
     {
 
-        $files = array();
-        $logOpts = $this->_file;
-
-        $logMaxSize = $logOpts['maxSize'];
+        $logMaxSize = $this->getOption('maxSize');
         if (!is_numeric($logMaxSize)) {
             $logMaxSize = 104857600;
         }
 
-        $listFiles = scandir($logOpts['logDir']);
-        if (!empty($listFiles)) {
-            foreach ($listFiles as $file) {
-                $info = pathinfo($file);
-                if (isset($info['extension']) && $info['extension'] === $logOpts['ext']) {
-                    $files[] = $file;
-                }
-                
-            }
-        }
-
-        $logName = $logOpts['name']  . '.' . $logOpts['ext'];
-        $logFile = $logOpts['logDir'] . '/' . $logName;
+        $logFile = sprintf(
+            '%s/%s.%s',
+            $this->getOption('logDir'),
+            $this->getOption('name'),
+            $this->getOption('ext')
+        );
 
         if (!file_exists($logFile)) {
             $log = fopen($logFile, 'w');
@@ -62,27 +88,76 @@ class File
 
         if ($fileSize > $logMaxSize) {
 
-            $numFile = sizeof($files) + 1;
-            if ($numFile <= $logOpts['maxLogs']) {
+            $numFile = sizeof($this->getFiles()) + 1;
+
+            if ($numFile <= $this->getOption('maxLogs')) {
 
                 $pathInfo = pathinfo($logFile);
-                $path = realpath($pathInfo['dirname']);
-                $newName = $pathInfo['filename'] . '.' . ($numFile) . '.' . $pathInfo['extension'];
+                $newName = sprintf(
+                    '%s.%s.%s',
+                    $pathInfo['filename'],
+                    $numFile,
+                    $pathInfo['extension']
+                );
 
-                rename($logFile, $path . '/' . $newName);
+                rename(
+                    $logFile,
+                    $this->getOption('logDir') . '/' . $newName
+                );
 
                 $log = fopen($logFile, 'w');
                 fclose($log);
+
             }
         }
 
-        $date = date($logOpts['dateFormat']);
-        
+        $date = date($this->getOption('dateFormat'));
+
         file_put_contents(
-            $logFile, 
+            $logFile,
             $date . ': ' . $status . ' ' . print_r($message, true) . PHP_EOL,
             FILE_APPEND | LOCK_EX
         );
+
+    }
+
+    /**
+     * get option value
+     *
+     * @param  string $option
+     * @return string option value
+     */
+    public function getOption(string $option)
+    {
+        return $this->_options[$option];
+    }
+
+    /**
+     * get current files
+     *
+     * @return array
+     */
+    public function getFiles()
+    {
+
+        $files = array();
+        $listFiles = scandir($this->getOption('logDir'));
+
+        if (!empty($listFiles)) {
+            foreach ($listFiles as $file) {
+                $info = pathinfo($file);
+                if (
+                    isset($info['extension'])
+                &&
+                    $info['extension'] === $this->getOption('ext')
+                ) {
+                    $files[] = $file;
+                }
+
+            }
+        }
+
+        return $files;
 
     }
 
