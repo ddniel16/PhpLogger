@@ -101,7 +101,7 @@ class PhpLogger
      */
     public function setDateFormat($dateTimeZone)
     {
-        $this->_dateTimeZone = $dateTimeZone;
+        $this->_dateFormat = $dateTimeZone;
         return $this;
     }
 
@@ -110,7 +110,7 @@ class PhpLogger
      */
     public function getDateFormat()
     {
-        return $this->_dateTimeZone;
+        return $this->_dateFormat;
     }
 
     /**
