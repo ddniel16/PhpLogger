@@ -64,6 +64,10 @@ class PhpLogger
      */
     protected $_output = false;
 
+    /**
+     * @param string $timeZone
+     * @return \PhpLogger\PhpLogger
+     */
     public function setTimeZone($timeZone)
     {
 
@@ -83,7 +87,27 @@ class PhpLogger
 
     }
 
+    /**
+     * @return string
+     */
     public function getTimeZone()
+    {
+        return $this->_dateTimeZone;
+    }
+
+    /**
+     * @param string $dateTimeZone
+     * @return string
+     */
+    public function setDateFormat($dateTimeZone)
+    {
+        return $this->_dateTimeZone;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateFormat()
     {
         return $this->_dateTimeZone;
     }
@@ -164,7 +188,7 @@ class PhpLogger
     {
 
         $date = new \DateTime('now', new \DateTimeZone($this->getTimeZone()));
-        $date = $date->format($this->_dateFormat);
+        $date = $date->format($this->getDateFormat());
 
         $log = \PhpLogger\Tools::interpolate($message, $context);
 
