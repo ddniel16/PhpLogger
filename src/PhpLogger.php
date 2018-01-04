@@ -64,6 +64,30 @@ class PhpLogger
      */
     protected $_output = false;
 
+    public function setTimeZone($timeZone)
+    {
+
+        if (in_array($timeZone, timezone_identifiers_list())) {
+            $this->_dateTimeZone = $timeZone;
+            return $this;
+        }
+
+        $defaultTimeZone = date_default_timezone_get();
+        if (in_array($defaultTimeZone, timezone_identifiers_list())) {
+            $this->_dateTimeZone = $defaultTimeZone;
+            return $this;
+        }
+
+        $this->_dateTimeZone = 'UTC';
+        return $this;
+
+    }
+
+    public function getTimeZone()
+    {
+        return $this->_dateTimeZone;
+    }
+
     /**
      * Get output value
      *
@@ -123,7 +147,7 @@ class PhpLogger
     /**
      * Prepare message from send loggers
      *
-     * @param unknown $message
+     * @param string $message
      * @param array $context
      * @param string $priority
      * @param string $priorityMsg
@@ -139,7 +163,7 @@ class PhpLogger
     )
     {
 
-        $date = new \DateTime('now', new \DateTimeZone($this->_dateTimeZone));
+        $date = new \DateTime('now', new \DateTimeZone($this->getTimeZone()));
         $date = $date->format($this->_dateFormat);
 
         $log = \PhpLogger\Tools::interpolate($message, $context);
