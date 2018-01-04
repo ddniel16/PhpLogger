@@ -210,7 +210,7 @@ class Logger implements \Psr\Log\LoggerInterface
      *
      * Example: Email sent!
      *
-     * @param unknown $message
+     * @param string $message
      * @param array $context
      * @param string $priority
      */
@@ -231,7 +231,7 @@ class Logger implements \Psr\Log\LoggerInterface
 
     /**
      *
-     * @param unknown $message
+     * @param string $message
      * @param array $context
      * @param string $priority
      * @param string $tag

@@ -153,7 +153,7 @@ class Tools
 
     /**
      * Interpolates context values into the message placeholders.
-     * @param unknown $message
+     * @param string $message
      * @param array $context
      * @return string
      */
